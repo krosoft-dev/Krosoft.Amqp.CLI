@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Krosoft.Amqp.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "git -c"
+    }
+  }
+}

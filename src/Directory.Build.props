@@ -1,0 +1,17 @@
+<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), '$(MSBuildThisFileDirectory)../'))" Condition="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), '$(MSBuildThisFileDirectory)../')) != ''"/>
+	<PropertyGroup>
+		<TargetFrameworks>net9.0</TargetFrameworks>
+		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+		<IsPackable>true</IsPackable>
+		<IsTestProject>false</IsTestProject>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+		<InternalsVisibleTo Include="$(MSBuildProjectName).Tests"/>
+	</ItemGroup>
+</Project>

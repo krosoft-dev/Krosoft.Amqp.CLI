@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Company>Krosoft</Company>
+    <Authors>Krosoft</Authors>
+    <Copyright>Copyright © 2012 - 2025 Krosoft</Copyright>
+    <RepositoryUrl>https://github.com/krosoft-dev/Krosoft.Amqp.CLI.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+</Project>

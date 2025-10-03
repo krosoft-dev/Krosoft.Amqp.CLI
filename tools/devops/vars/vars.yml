@@ -1,0 +1,21 @@
+variables:
+  # Agent VM image name
+  vmImage: "ubuntu-22.04"
+
+  # .net
+  dotNetVersion: "9.0.x"
+  buildConfiguration: "Release"
+  buildPlatform: "AnyCPU"
+  buildProjects: "**/*.csproj"
+  testProjects: "**/*Tests/*.csproj"
+  publishProjects: "**/*Api.csproj"
+  warningThreshold: 10
+  coverageThreshold: 10
+  disable.coverage.autogenerate: "true"
+
+  #SonarCloud
+  sonarCloudEndpoint: "SonarCloud"
+  sonarCloudOrganization: "krosoft-dev"
+  sonarCloudProjectKey: "krosoft-dev_Krosoft.Amqp.CLI"
+  sonarCloudProjectName: "Krosoft.Amqp.CLI"
+

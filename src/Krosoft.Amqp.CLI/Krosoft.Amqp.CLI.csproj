@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><PackAsTool>true</PackAsTool>
+	  <ToolCommandName>krosoft</ToolCommandName>
+	  <PackageOutputPath>../../publish</PackageOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>  
+</Project>

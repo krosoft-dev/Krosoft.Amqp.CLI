@@ -1,0 +1,24 @@
+name: Nuget 'Krosoft.Amqp.CLI' - $(Date:yyyy.MM.dd).$(BuildID)
+
+pr: none
+
+resources:
+  repositories:
+    - repository: Krosoft.Extensions
+      type: github
+      name: krosoft-dev/Krosoft.Extensions
+      endpoint: krosoft-dev
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - "**/Krosoft.Amqp.CLI/*"
+
+extends:
+  template: tools/devops/templates/pipelines/nuget-template.yml@Krosoft.Extensions
+  parameters:
+    packages:
+      - "Krosoft.Amqp.CLI"
