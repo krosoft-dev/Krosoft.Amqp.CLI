@@ -41,9 +41,11 @@ internal static class ProgramAmqp
 
     public static Task<int> Queues(Options.QueuesOptions opts)
     {
-        if (opts.Clean)
+        if (opts.List)
         {
-            return GetManager().Queues();
+            // return GetManager().Queues();
+            return GetManager().Queues2();
+            //return GetManager().Queues3();
         }
 
         return Task.FromResult(-1);

@@ -2,8 +2,8 @@
   "profiles": {
     "Krosoft.Amqp.CLI": {
       "commandName": "Project",
-      //"commandLineArgs": "queues -l"
-      "commandLineArgs": "info"
+      // "commandLineArgs": "info"
+      "commandLineArgs": "queues -l"
     }
   }
 }
