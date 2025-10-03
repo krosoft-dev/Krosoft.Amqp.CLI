@@ -33,23 +33,17 @@ using Krosoft.Amqp.CLI.Managers;
 
 namespace Krosoft.Amqp.CLI;
 
-internal static class ProgramGit
+internal static class ProgramAmqp
 {
-    public static Task<int> Pull() => GetManager().Pull();
-    public static Task<int> Clean() => GetManager().Clean();
+    public static Task<int> Info() => GetManager().Info();
 
-    private static IGitManager GetManager() => new GitManager();
+    private static IAmqpManager GetManager() => new AmqpManager();
 
-    public static Task<int> Handle(Options.RunOptions opts)
+    public static Task<int> Queues(Options.QueuesOptions opts)
     {
         if (opts.Clean)
         {
-            return Clean();
-        }
-
-        if (opts.Pull)
-        {
-            return Pull();
+            return GetManager().Queues();
         }
 
         return Task.FromResult(-1);
