@@ -9,10 +9,12 @@
      {
          PrintBanner();
          return await Parser.Default.ParseArguments<Options.InfoOptions,
-                                Options.QueuesOptions >(args)
+                                Options.QueuesOptions,
+                                Options.ResetOptions>(args)
                             .MapResult(
-                                       (Options.InfoOptions _) => ProgramAmqp.Info(), 
+                                       (Options.InfoOptions opts) => ProgramAmqp.Info(opts),
                                        (Options.QueuesOptions opts) => ProgramAmqp.Queues(opts),
+                                       (Options.ResetOptions opts) => ProgramAmqp.Reset(opts),
                                        _ => Task.FromResult(-1));
      }
  

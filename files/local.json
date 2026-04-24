@@ -1,0 +1,17 @@
+{
+  "name": "local",
+  "portainer": {
+    "url": "http://localhost:9000",
+    "apiKey": "secret_key",
+    "endpointId": 1
+  },
+
+  "amqp": {
+    "url": "http://localhost:8161",
+    "username": "admin",
+    "password": "admin",
+    "brokerName": "0.0.0.0",
+    "queues": ["MA_QUEUE_1", "MA_QUEUE_2"]
+  },
+  "containers": ["mon-service-api", "mon-service-worker"]
+}

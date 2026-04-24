@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Krosoft.Amqp.CLI/Krosoft.Amqp.CLI.csproj" />
+  <Project Path="tests/Krosoft.Amqp.CLI.Tests/Krosoft.Amqp.CLI.Tests.csproj" />
+</Solution>

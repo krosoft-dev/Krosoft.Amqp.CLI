@@ -35,19 +35,20 @@ namespace Krosoft.Amqp.CLI;
 
 internal static class ProgramAmqp
 {
-    public static Task<int> Info() => GetManager().Info();
-
-    private static IAmqpManager GetManager() => new AmqpManager();
+    public static Task<int> Info(Options.InfoOptions opts) => GetAmqpManager().Info(opts.Profile);
 
     public static Task<int> Queues(Options.QueuesOptions opts)
     {
         if (opts.List)
-        {
-            // return GetManager().Queues();
-            return GetManager().Queues2();
-            //return GetManager().Queues3();
-        }
+            return GetAmqpManager().Queues2();
 
         return Task.FromResult(-1);
     }
+
+    public static Task<int> Reset(Options.ResetOptions opts) =>
+        GetResetManager().Reset(opts.Profile);
+
+    private static IAmqpManager GetAmqpManager() => new AmqpManager();
+
+    private static IResetManager GetResetManager() => new ResetManager();
 }

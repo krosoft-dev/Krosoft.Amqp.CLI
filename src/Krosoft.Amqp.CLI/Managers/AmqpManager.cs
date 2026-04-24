@@ -1,30 +1,28 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Krosoft.Amqp.CLI.Helpers;
 using Krosoft.Amqp.CLI.Interfaces;
 
 namespace Krosoft.Amqp.CLI.Managers;
 
 internal class AmqpManager : IAmqpManager
 {
-    public async Task<int> Info()
+    public async Task<int> Info(string profilePath)
     {
-        DisplayHeader("INFORMATIONS DU BROKER");
+        var (profile, error) = await ProfileLoader.LoadAsync(profilePath);
+        if (profile is null)
+            return HandleError(error!);
 
-        var artemisUrl = "http://localhost:8161";
-        var username = "admin";
-        var password = "admin";
-        var brokerName = "0.0.0.0";
+        DisplayHeader($"INFORMATIONS DU BROKER — {profile.Name}");
 
         try
         {
             using var client = new HttpClient();
-
-            var authValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
+            var authValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{profile.Amqp.Username}:{profile.Amqp.Password}"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authValue);
 
-            var brokerUrl = $"{artemisUrl}/console/jolokia/read/org.apache.activemq.artemis:broker=\"{brokerName}\"";
-
+            var brokerUrl = $"{profile.Amqp.Url}/console/jolokia/read/org.apache.activemq.artemis:broker=\"{profile.Amqp.BrokerName}\"";
             var response = await client.GetAsync(brokerUrl);
 
             if (response.IsSuccessStatusCode)
@@ -34,13 +32,17 @@ internal class AmqpManager : IAmqpManager
 
                 if (doc.RootElement.TryGetProperty("value", out var value))
                 {
-                    Console.WriteLine($"Version: {GetJsonProperty(value, "Version")}");
-                    Console.WriteLine($"Uptime: {GetJsonProperty(value, "Uptime")}");
-                    Console.WriteLine($"Total connections: {GetJsonLong(value, "ConnectionCount")}");
-                    Console.WriteLine($"Total addresses: {GetJsonLong(value, "AddressCount")}");
-                    Console.WriteLine($"Total queue count: {GetJsonLong(value, "QueueCount")}");
-                    Console.WriteLine($"Mémoire totale: {GetJsonLong(value, "GlobalMaxSize"):N0} bytes");
+                    Console.WriteLine($"Version         : {GetJsonProperty(value, "Version")}");
+                    Console.WriteLine($"Uptime          : {GetJsonProperty(value, "Uptime")}");
+                    Console.WriteLine($"Connexions      : {GetJsonLong(value, "ConnectionCount")}");
+                    Console.WriteLine($"Addresses       : {GetJsonLong(value, "AddressCount")}");
+                    Console.WriteLine($"Queues          : {GetJsonLong(value, "QueueCount")}");
+                    Console.WriteLine($"Mémoire totale  : {GetJsonLong(value, "GlobalMaxSize"):N0} bytes");
                 }
+            }
+            else
+            {
+                return HandleError($"Erreur HTTP {(int)response.StatusCode} — {await response.Content.ReadAsStringAsync()}");
             }
 
             return 1;

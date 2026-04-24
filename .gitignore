@@ -403,3 +403,7 @@ yarn-error.log*
 *.bak 
 temp/
 **/publish/* 
+.claude/**
+files/production.json
+files/staging.json
+files/test.json
