@@ -15,7 +15,8 @@ internal record AmqpProfile(
     [property: JsonPropertyName("username")] string Username,
     [property: JsonPropertyName("password")] string Password,
     [property: JsonPropertyName("brokerName")] string BrokerName,
-    [property: JsonPropertyName("queues")] List<string> Queues
+    [property: JsonPropertyName("queues")] List<string> Queues,
+    [property: JsonPropertyName("amqpUrl")] string? AmqpUrl = null
 );
 
 internal record Profile(

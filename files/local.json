@@ -8,6 +8,7 @@
 
   "amqp": {
     "url": "http://localhost:8161",
+    "amqpUrl": "amqp://localhost:5672",
     "username": "admin",
     "password": "admin",
     "brokerName": "0.0.0.0",

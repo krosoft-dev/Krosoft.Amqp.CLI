@@ -48,6 +48,12 @@ internal static class ProgramAmqp
     public static Task<int> Reset(Options.ResetOptions opts) =>
         GetResetManager().Reset(opts.Profile);
 
+    public static Task<int> Message(Options.MessageOptions opts) =>
+        GetAmqpManager().DownloadMessage(opts.Profile, opts.Queue, opts.Id, opts.Out);
+
+    public static Task<int> Messages(Options.MessagesOptions opts) =>
+        GetAmqpManager().ListMessages(opts.Profile, opts.Queue);
+
     private static IAmqpManager GetAmqpManager() => new AmqpManager();
 
     private static IResetManager GetResetManager() => new ResetManager();

@@ -404,6 +404,8 @@ yarn-error.log*
 temp/
 **/publish/* 
 .claude/**
+dumps/**
 files/production.json
 files/staging.json
 files/test.json
+files/uat.json
