@@ -24,6 +24,7 @@ Les commandes s'appuient sur un fichier de profil JSON qui regroupe la configura
   },
   "amqp": {
     "url": "http://mon-serveur:8161",
+    "amqpUrl": "amqp://mon-serveur:5672",
     "username": "admin",
     "password": "admin",
     "brokerName": "0.0.0.0",
@@ -34,6 +35,8 @@ Les commandes s'appuient sur un fichier de profil JSON qui regroupe la configura
 ```
 
 > **Auth Portainer** : utiliser `apiKey` (recommandé) **ou** `username` + `password`. L'API key se génère depuis _Profile → API keys_ dans l'interface Portainer.
+
+> **Champ `amqpUrl`** : requis uniquement pour la commande `message` (téléchargement du body complet via AMQP). Format `amqp://host:5672`. Le champ `url` (HTTP, port 8161) reste utilisé pour les commandes Jolokia (`info`, `queues`, `messages`, `reset`).
 
 ## Commandes
 
@@ -61,6 +64,39 @@ Liste les statistiques de toutes les queues du broker.
 ```bash
 krosoft queues --list --profile ./mon-profil.json
 ```
+
+### `messages`
+
+Liste les messages présents dans une file AMQP (parcours non destructif via Jolokia). Affiche pour chaque message son `messageID`, sa date, sa taille et son `correlation_id`.
+
+```bash
+krosoft messages --profile ./mon-profil.json --queue MA_QUEUE_1
+```
+
+```
+#    messageID        Date                     Taille  correlation_id
+────────────────────────────────────────────────────────────────────────────────────────────────────
+1    ID:broker-42     2026-06-22 18:27:20       1 240  a1b2c3d4-...
+2    ID:broker-43     2026-06-22 18:31:05         860  e5f6g7h8-...
+────────────────────────────────────────────────────────────────────────────────────────────────────
+Total : 2 message(s)
+```
+
+### `message`
+
+Télécharge localement le body complet d'un message identifié par son `messageID`. Le `correlation_id` est d'abord résolu via Jolokia, puis le body complet est récupéré via AMQP (browse non destructif — le message reste dans la file).
+
+```bash
+krosoft message --profile ./mon-profil.json --queue MA_QUEUE_1 --id ID:broker-42 --out ./dumps/message.json
+```
+
+| Option | Raccourci | Requis | Description |
+|--------|-----------|--------|-------------|
+| `--queue` | `-q` | oui | Nom de la file à parcourir. |
+| `--id` | `-i` | oui | `messageID` interne du message à télécharger. |
+| `--out` | `-o` | non | Chemin du fichier de sortie. Par défaut : `message_<id>.json`. |
+
+> Cette commande nécessite le champ `amqpUrl` dans le profil.
 
 ### `reset`
 
