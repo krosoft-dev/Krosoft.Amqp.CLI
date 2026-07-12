@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Krosoft.Amqp.CLI.Helpers;
 using Krosoft.Amqp.CLI.Interfaces;
 using Krosoft.Amqp.CLI.Models;
@@ -43,7 +44,9 @@ internal class ResetManager : IResetManager
 
         Console.WriteLine("\n[1/3] Arrêt des containers...");
         foreach (var (name, id) in containerIds)
+        {
             await StopContainer(portainerClient, portainerBase, profile.Portainer.EndpointId, name, id);
+        }
 
         Console.WriteLine("\n[2/3] Purge des files AMQP...");
         using var amqpClient = new HttpClient();
@@ -54,11 +57,15 @@ internal class ResetManager : IResetManager
         Console.WriteLine($"  Broker : {brokerName}");
 
         foreach (var queue in profile.Amqp.Queues)
+        {
             await PurgeQueue(amqpClient, profile.Amqp.Url, brokerName, queue);
+        }
 
         Console.WriteLine("\n[3/3] Démarrage des containers...");
         foreach (var (name, id) in containerIds)
+        {
             await StartContainer(portainerClient, portainerBase, profile.Portainer.EndpointId, name, id);
+        }
 
         WriteColored(ConsoleColor.Green, "\nReset terminé avec succès.\n");
         return 0;
@@ -74,16 +81,17 @@ internal class ResetManager : IResetManager
         }
 
         if (string.IsNullOrWhiteSpace(portainer.Username) || string.IsNullOrWhiteSpace(portainer.Password))
+        {
             throw new InvalidOperationException("Le profil doit contenir soit 'apiKey', soit 'username' + 'password'.");
+        }
 
-        var payload = JsonSerializer.Serialize(new { Username = portainer.Username, Password = portainer.Password });
+        var payload = JsonSerializer.Serialize(new { portainer.Username, portainer.Password });
         var response = await client.PostAsync($"{baseUrl}/api/auth", new StringContent(payload, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(content);
-        var jwt = doc.RootElement.GetProperty("jwt").GetString()
-                  ?? throw new InvalidOperationException("Token JWT absent de la réponse Portainer.");
+        var jwt = doc.RootElement.GetProperty("jwt").GetString() ?? throw new InvalidOperationException("Token JWT absent de la réponse Portainer.");
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
         Console.WriteLine("  Auth Portainer : JWT");
@@ -108,17 +116,22 @@ internal class ResetManager : IResetManager
             var id = container.GetProperty("Id").GetString() ?? string.Empty;
             var names = container.GetProperty("Names")
                                  .EnumerateArray()
-                                 .Select(n => n.GetString()?.TrimStart('/') ?? string.Empty);
+                                 .Select(n => n.GetString()?.TrimStart('/') ?? string.Empty)
+                                 .ToList();
 
             foreach (var targetName in profile.Containers.Where(t => !result.ContainsKey(t)))
             {
                 if (names.Any(n => string.Equals(n, targetName, StringComparison.OrdinalIgnoreCase)))
+                {
                     result[targetName] = id;
+                }
             }
         }
 
         foreach (var missing in profile.Containers.Where(c => !result.ContainsKey(c)))
+        {
             WriteError($"  Container introuvable : {missing}");
+        }
 
         return result;
     }
@@ -127,18 +140,26 @@ internal class ResetManager : IResetManager
     {
         var response = await client.PostAsync($"{baseUrl}/api/endpoints/{endpointId}/docker/containers/{id}/stop", null);
         if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotModified)
+        {
             WriteColored(ConsoleColor.Green, $"  [OK] {name} arrêté");
+        }
         else
+        {
             WriteError($"  [ERREUR] Arrêt de {name} : {response.StatusCode}");
+        }
     }
 
     private static async Task StartContainer(HttpClient client, string baseUrl, int endpointId, string name, string id)
     {
         var response = await client.PostAsync($"{baseUrl}/api/endpoints/{endpointId}/docker/containers/{id}/start", null);
         if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotModified)
+        {
             WriteColored(ConsoleColor.Green, $"  [OK] {name} démarré");
+        }
         else
+        {
             WriteError($"  [ERREUR] Démarrage de {name} : {response.StatusCode}");
+        }
     }
 
     private static async Task<string?> DiscoverBrokerName(HttpClient client, string artemisUrl)
@@ -147,22 +168,31 @@ internal class ResetManager : IResetManager
         {
             var response = await client.GetAsync($"{artemisUrl}/console/jolokia/search/org.apache.activemq.artemis:broker=*");
             if (!response.IsSuccessStatusCode)
+            {
                 return null;
+            }
 
             var content = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(content);
 
             if (!doc.RootElement.TryGetProperty("value", out var value))
+            {
                 return null;
+            }
 
             foreach (var item in value.EnumerateArray())
             {
                 var mbean = item.GetString();
-                if (mbean is null) continue;
+                if (mbean is null)
+                {
+                    continue;
+                }
 
-                var match = System.Text.RegularExpressions.Regex.Match(mbean, @"broker=""([^""]+)""");
+                var match = Regex.Match(mbean, @"broker=""([^""]+)""");
                 if (match.Success)
+                {
                     return match.Groups[1].Value;
+                }
             }
         }
         catch
@@ -189,13 +219,17 @@ internal class ResetManager : IResetManager
             {
                 var response = await client.GetAsync($"{artemisUrl}/console/jolokia/search/{pattern}");
                 if (!response.IsSuccessStatusCode)
+                {
                     continue;
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(content);
 
                 if (!doc.RootElement.TryGetProperty("value", out var value))
+                {
                     continue;
+                }
 
                 var mbeans = value.EnumerateArray()
                                   .Select(item => item.GetString())
@@ -203,24 +237,32 @@ internal class ResetManager : IResetManager
                                   .ToList();
 
                 if (mbeans.Count == 0)
+                {
                     continue;
+                }
 
                 var target = $"queue=\"{queueName}\"";
                 var found = mbeans.FirstOrDefault(mbean => mbean!.Contains(target, StringComparison.OrdinalIgnoreCase));
                 if (found is not null)
+                {
                     return found;
+                }
 
                 // Diagnostic : affiche un échantillon si aucun match
                 Console.WriteLine($"  [DEBUG] pattern={pattern} → {mbeans.Count} mbeans, aucun match pour queue=\"{queueName}\"");
                 if (mbeans.Count <= 5)
                 {
                     foreach (var m in mbeans)
+                    {
                         Console.WriteLine($"    {m}");
+                    }
                 }
                 else
                 {
                     foreach (var m in mbeans.Where(m => m!.Contains("queue=", StringComparison.OrdinalIgnoreCase)).Take(5))
+                    {
                         Console.WriteLine($"    {m}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -246,7 +288,7 @@ internal class ResetManager : IResetManager
 
         var payload = JsonSerializer.Serialize(new { type = "exec", mbean, operation = "removeAllMessages()" });
         var response = await client.PostAsync($"{artemisUrl}/console/jolokia/",
-            new StringContent(payload, Encoding.UTF8, "application/json"));
+                                              new StringContent(payload, Encoding.UTF8, "application/json"));
 
         var content = await response.Content.ReadAsStringAsync();
 
@@ -275,7 +317,9 @@ internal class ResetManager : IResetManager
         {
             var response = await client.GetAsync($"{artemisUrl}/console/jolokia/read/{mbean}/MessageCount");
             if (!response.IsSuccessStatusCode)
+            {
                 return null;
+            }
 
             var content = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(content);
@@ -299,8 +343,8 @@ internal class ResetManager : IResetManager
 
         WriteColored(ConsoleColor.Green, $"╔{border}╗");
         WriteColored(ConsoleColor.Green, title.Length % 2 != 0
-            ? $"║{padding} {title}{padding}║"
-            : $"║{padding}{title}{padding}║");
+                         ? $"║{padding} {title}{padding}║"
+                         : $"║{padding}{title}{padding}║");
         WriteColored(ConsoleColor.Green, $"╚{border}╝\n");
     }
 

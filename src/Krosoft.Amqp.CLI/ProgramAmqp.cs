@@ -40,7 +40,9 @@ internal static class ProgramAmqp
     public static Task<int> Queues(Options.QueuesOptions opts)
     {
         if (opts.List)
+        {
             return GetAmqpManager().Queues2();
+        }
 
         return Task.FromResult(-1);
     }

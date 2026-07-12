@@ -10,7 +10,9 @@ internal static class ProfileLoader
     internal static async Task<(Profile? profile, string? error)> LoadAsync(string path)
     {
         if (!File.Exists(path))
+        {
             return (null, $"Profil introuvable : {path}");
+        }
 
         try
         {
